@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  iu-sre-metrics-lambda-new-account
+
+  Sample SAM Template for iu-sre-metrics-lambda-new-account
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  # Exemplo para teste
+  CloudAWSNewAccountSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub 'cloud-new-account'
+      Subscription:
+        - Protocol: lambda
+          Endpoint: !GetAtt ObservabilityFunction.Arn
+
+  ObservabilityFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: metrics-new-account/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref CloudAWSNewAccountSNS
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  SNStopicName:
+    Description: SNS topic name
+    Value: !GetAtt CloudAWSNewAccountSNS.TopicName
+  SNStopicARN:
+    Description: SNS topic ARN
+    Value: !Ref CloudAWSNewAccountSNS
+  LambdaFunction:
+    Description: "Observability Lambda Function ARN"
+    Value: !GetAtt ObservabilityFunction.Arn
+  LambdaFunctionIamRole:
+    Description: "Implicit IAM Role created for Observability function"
+    Value: !GetAtt ObservabilityFunctionRole.Arn

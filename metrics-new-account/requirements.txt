@@ -1,0 +1,2 @@
+requests
+jsonpickle==1.3
